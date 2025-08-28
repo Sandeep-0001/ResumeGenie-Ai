@@ -30,7 +30,7 @@ export default function ResumeOptimizer() {
     setResult(null);
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/optimize`, formData, {
+      const res = await axios.post("https://reesumegenie-ai-backend.onrender.com/optimize", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setResult(res.data);
