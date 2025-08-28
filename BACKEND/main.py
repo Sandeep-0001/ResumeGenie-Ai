@@ -11,7 +11,7 @@ app = FastAPI()
 # Enable CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["https://resumegenie-ai.vercel.app/"],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,7 +42,7 @@ API_KEY = os.getenv("OPENROUTER_API_KEY")
 @app.get("/")
 def read_root():
     return {"status": "FastAPI is working!"}
-@app.post("/api/optimize")
+@app.post("/optimize")
 async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
     try:
         if not API_KEY:
