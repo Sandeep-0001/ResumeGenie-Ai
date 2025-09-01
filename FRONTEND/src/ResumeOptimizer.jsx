@@ -43,7 +43,7 @@ export default function ResumeOptimizer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-200 flex items-center justify-center p-6">
       <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8">
         
         {/* Header */}
@@ -89,20 +89,42 @@ export default function ResumeOptimizer() {
           </p>
         </div>
 
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className={`w-full text-white font-semibold py-3 rounded-lg shadow-md transition-colors ${
-            loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          {loading ? " Analyzing..." : " Optimize Resume"}
-        </button>
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className={`w-full text-white font-semibold py-3 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all duration-300 ${
+              loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading && (
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                ></path>
+              </svg>
+            )}
+            {loading ? "Analyzing..." : "Optimize Resume"}
+          </button>
 
         {/* Result Section */}
         {result && (
-          <div className="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="mt-8 p-6 bg-gray-300 border border-gray-400 rounded-xl">
             <h2 className="text-2xl font-semibold mb-4 text-center text-blue-700">
                Optimization Results
             </h2>
