@@ -10,7 +10,7 @@ export default function ResumeOptimizer() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.size > 5 * 1024 * 1024) {
-      alert("⚠️ File too large! Please upload files under 5MB.");
+      alert("\u26A0 File too large! Please upload files under 5MB.");
       return;
     }
     setResumeFile(file);
@@ -18,7 +18,7 @@ export default function ResumeOptimizer() {
 
   const handleSubmit = async () => {
     if (!resumeFile || !jobDesc) {
-      alert("⚠️ Please upload a resume and paste a job description.");
+      alert("\u26A0 Please upload a resume and paste a job description.");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function ResumeOptimizer() {
       setResult(res.data);
     } catch (err) {
       console.error(err);
-      setResult({ error: "❌ Error analyzing resume. Please try again." });
+      setResult({ error: " Error analyzing resume. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function ResumeOptimizer() {
         {/* Resume Upload */}
         <div className="mb-6">
           <label className="block mb-2 font-semibold text-gray-700">
-            📎 Upload Resume
+             Upload Resume
           </label>
           <input
             type="file"
@@ -67,7 +67,7 @@ export default function ResumeOptimizer() {
           />
           {resumeFile && (
             <p className="text-sm text-gray-500 mt-1">
-              ✅ {resumeFile.name}
+               {resumeFile.name}
             </p>
           )}
         </div>
@@ -75,7 +75,7 @@ export default function ResumeOptimizer() {
         {/* Job Description */}
         <div className="mb-6">
           <label className="block mb-2 font-semibold text-gray-700">
-            📝 Job Description
+             Job Description
           </label>
           <textarea
             placeholder="Paste job description here..."
@@ -97,14 +97,14 @@ export default function ResumeOptimizer() {
             loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {loading ? "⏳ Analyzing..." : " Optimize Resume"}
+          {loading ? " Analyzing..." : " Optimize Resume"}
         </button>
 
         {/* Result Section */}
         {result && (
           <div className="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-xl">
             <h2 className="text-2xl font-semibold mb-4 text-center text-blue-700">
-              📊 Optimization Results
+               Optimization Results
             </h2>
 
             {result.error ? (
