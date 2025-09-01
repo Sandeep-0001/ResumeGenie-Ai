@@ -51,7 +51,9 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
         resume_text = extract_text(resume)
 
         prompt = f"""
-        You are simulating an advanced ATS.
+        You are simulating an advanced Applicant Tracking System (ATS) used by top tech companies.
+
+        Evaluate how well the following resume matches the given job description.
 
         Job Description:
         {jobDesc}
@@ -59,11 +61,14 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
         Resume:
         {resume_text}
 
-        Respond strictly in JSON:
-        - ats_score: 0-100
-        - missing_skills: list of strings
-        - suggestions: list of strings
-        - summary: string
+        Respond strictly in valid JSON format with the following keys:
+        {{
+          "ats_score": number (0-100),
+          "missing_skills": ["list of strings"],
+          "suggestions": ["list of strings"],
+          "summary": "string"
+        }}
+
         """
 
         result = call_openrouter(prompt)
