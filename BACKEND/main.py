@@ -5,13 +5,13 @@ from PyPDF2 import PdfReader
 import docx
 from ResumeGenie import call_openrouter   # lowercase filename!
 import os
-
 app = FastAPI()
 
 # Enable CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://resumegenie-ai.vercel.app"],  # React dev server
+    allow_origins=["<button onClick={handleCopy}>Copy Link</button>"],
+  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -19,7 +19,7 @@ app.add_middleware(
 
 def extract_text(file: UploadFile) -> str:
     filename = file.filename.lower()
-    text = ""
+    text = " "
 
     if filename.endswith(".pdf"):
         file.file.seek(0)
@@ -51,9 +51,7 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
         resume_text = extract_text(resume)
 
         prompt = f"""
-        You are simulating an advanced Applicant Tracking System (ATS) used by top tech companies.
-
-        Evaluate how well the following resume matches the given job description.
+        Assess the degree of alignment between the provided resume and the specified role requirements."
 
         Job Description:
         {jobDesc}
@@ -71,8 +69,7 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
 
         """
 
-        result = call_openrouter(prompt)
-        return JSONResponse(result)
+        return JSONResponse(call_openrouter(prompt))
 
     except Exception as e:
         return JSONResponse({"error": f"Error processing resume: {str(e)}"}, status_code=500)
