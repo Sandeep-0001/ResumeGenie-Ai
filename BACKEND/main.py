@@ -10,7 +10,7 @@ app = FastAPI()
 # Enable CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["<button onClick={handleCopy}>Copy Link</button>"],
+    allow_origins=["https://resumegenie-ai.vercel.app"],
   # React dev server
     allow_credentials=True,
     allow_methods=["*"],
