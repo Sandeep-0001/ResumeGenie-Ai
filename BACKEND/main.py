@@ -69,7 +69,10 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
 
         """
 
-        return JSONResponse(call_openrouter(prompt))
+        result = call_openrouter(prompt)
+        return JSONResponse(result)
+    
 
     except Exception as e:
         return JSONResponse({"error": f"Error processing resume: {str(e)}"}, status_code=500)
+    
