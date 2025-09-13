@@ -48,24 +48,7 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
         if not API_KEY:
             return JSONResponse({"error": "Missing OpenRouter API key"}, status_code=500)
 
-        resume_text = extract_text(resume)
-
-        prompt = f"""
-        Assess the degree of alignment between the provided resume and the specified role requirements."
-
-        Job Description:
-        {jobDesc}
-
-        Resume:
-        {resume_text}
-
-        Respond strictly in valid JSON format with the following keys:
-        {{
-          "ats_score": number (0-100),
-          "missing_skills": ["list of strings"],
-          "suggestions": ["list of strings"],
-          "summary": "string"
-        }}
+       
 
         """
 
