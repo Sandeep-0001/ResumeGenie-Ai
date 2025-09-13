@@ -40,6 +40,39 @@ def extract_text(file: UploadFile) -> str:
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.get("/")
-d
+def read_root():
+    return {"status": "FastAPI is working!"}
+@app.post("/optimize")
+async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
+    try:
+        if not API_KEY:
+            return JSONResponse({"error": "Missing OpenRouter API key"}, status_code=500)
+
+        resume_text = extract_text(resume)
+
+        prompt = f"""
+        You are simulating an advanced Applicant Tracking System (ATS) used by top tech companies.
+
+        Evaluate how well the following resume matches the given job description.
+
+        Job Description:
+        {jobDesc}
+
+        Resume:
+        {resume_text}
+
+        Respond strictly in valid JSON format with the following keys:
+        {{
+          "ats_score": number (0-100),
+          "missing_skills": ["list of strings"],
+          "suggestions": ["list of strings"],
+          "summary": "string"
+        }}
+
+        """
+
+        result = call_openrouter(prompt)
+        return JSONResponse(result)
+
     except Exception as e:
         return JSONResponse({"error": f"Error processing resume: {str(e)}"}, status_code=500)
