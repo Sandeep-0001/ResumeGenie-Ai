@@ -40,19 +40,6 @@ def extract_text(file: UploadFile) -> str:
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.get("/")
-def read_root():
-    return {"status": "FastAPI is working!"}
-@app.post("/optimize")
-async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
-    try:
-        if not API_KEY:
-            return JSONResponse({"error": "Missing OpenRouter API key"}, status_code=500)
-
-       
-
-        """
-
-        return JSONResponse(call_openrouter(prompt))
-
+d
     except Exception as e:
         return JSONResponse({"error": f"Error processing resume: {str(e)}"}, status_code=500)
