@@ -3,15 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PyPDF2 import PdfReader
 import docx
-from ResumeGenie import call_openrouter   # lowercase filename!
+from ResumeGenie import call_gemini  
 import os
+
 app = FastAPI()
 
 # Enable CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://resumegenie-ai.vercel.app"],
-  # React dev server
+    allow_origins=["https://resumegenie-ai.vercel.app"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,16 +37,20 @@ def extract_text(file: UploadFile) -> str:
     text = text.replace('"', "'")
     return text
 
-API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+#  Use Gemini API key
+API_KEY = os.getenv("GEMINI_API_KEY")
 
 @app.get("/")
 def read_root():
-    return {"status": "FastAPI is working!"}
+    return {"status": "FastAPI + Gemini API is working!"}
+
+
 @app.post("/optimize")
 async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
     try:
         if not API_KEY:
-            return JSONResponse({"error": "Missing OpenRouter API key"}, status_code=500)
+            return JSONResponse({"error": " Missing GEMINI_API_KEY in environment"}, status_code=500)
 
         resume_text = extract_text(resume)
 
@@ -68,10 +72,10 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
           "suggestions": ["list of strings"],
           "summary": "string"
         }}
-
         """
 
-        result = call_openrouter(prompt)
+        
+        result = call_gemini(prompt)
         return JSONResponse(result)
 
     except Exception as e:
