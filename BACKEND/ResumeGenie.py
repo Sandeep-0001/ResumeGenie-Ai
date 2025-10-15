@@ -1,43 +1,36 @@
 # resumegenie.py
-import os, json, re
+import os, requests, json, re
 from dotenv import load_dotenv
-import google.generativeai as genai
 
-# Load environment variables
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 if not API_KEY:
-    raise ValueError(" Missing GEMINI_API_KEY in environment variables")
+    raise ValueError("❌ Missing OPENROUTER_API_KEY in environment variables")
 
-# Configure Gemini API
-genai.configure(api_key=API_KEY)
+def call_openrouter(prompt, model="openai/gpt-3.5-turbo"):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost",
+        "X-Title": "ResumeGenie API"
+    }
 
-# Default model
-MODEL_NAME = "gemini-2.5-flash"
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You are an ATS. Respond ONLY in JSON."},
+            {"role": "user", "content": prompt}
+        ]
+    }
 
-def call_openrouter(prompt, model=MODEL_NAME):
-    """
-    Calls Google Gemini API and returns a parsed JSON response.
-    """
     try:
-        # Create a model instance
-        model_instance = genai.GenerativeModel(model)
+        response = requests.post(BASE_URL, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        raw_response = response.json()["choices"][0]["message"]["content"]
 
-        # Generate content
-        response = model_instance.generate_content(
-            prompt=(
-                "You are simulating an advanced ATS (Applicant Tracking System). "
-                "Analyze the resume against the job description and respond ONLY in JSON "
-                "with keys: ats_score (0-100), missing_skills (list of strings), "
-                "suggestions (list of strings), summary (string). "
-                f"\n\n{prompt}"
-            )
-        )
-
-        raw_response = response.text.strip()
-
-        # Extract JSON safely
+        import re, json
         match = re.search(r"\{.*\}", raw_response, re.DOTALL)
         if match:
             return json.loads(match.group(0))
@@ -45,14 +38,13 @@ def call_openrouter(prompt, model=MODEL_NAME):
             return {
                 "ats_score": 0,
                 "missing_skills": [],
-                "suggestions": [" Could not parse Gemini response"],
-                "summary": "Invalid JSON format from Gemini"
+                "suggestions": [],
+                "summary": "⚠️ Could not parse AI response"
             }
-
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         return {
             "ats_score": 0,
             "missing_skills": [],
             "suggestions": [f"API error: {str(e)}"],
-            "summary": "Failed to contact Gemini API"
+            "summary": "Failed to contact OpenRouter"
         }
