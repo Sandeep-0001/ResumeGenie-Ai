@@ -3,12 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PyPDF2 import PdfReader
 import docx
-from ResumeGenie import call_gemini  
 import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from ResumeGenie import call_gemini  # blocking Gemini call
 
 app = FastAPI()
 
-# Enable CORS for React frontend
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://resumegenie-ai.vercel.app"],  
@@ -16,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+executor = ThreadPoolExecutor(max_workers=5)  
 
 def extract_text(file: UploadFile) -> str:
     filename = file.filename.lower()
@@ -33,24 +38,26 @@ def extract_text(file: UploadFile) -> str:
         file.file.seek(0)
         text = file.file.read().decode("utf-8")
 
-    # Clean quotes 
-    text = text.replace('"', "'")
-    return text
+    return text.replace('"', "'")  
 
-
-#  Use Gemini API key
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 @app.get("/")
 def read_root():
     return {"status": "FastAPI + Gemini API is working!"}
 
+async def run_gemini_async(prompt: str):
+    """
+    Run the blocking Gemini API call in a thread executor to prevent blocking FastAPI.
+    """
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(executor, call_gemini, prompt)
 
 @app.post("/optimize")
 async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
     try:
         if not API_KEY:
-            return JSONResponse({"error": " Missing GEMINI_API_KEY in environment"}, status_code=500)
+            return JSONResponse({"error": "Missing GEMINI_API_KEY in environment"}, status_code=500)
 
         resume_text = extract_text(resume)
 
@@ -74,8 +81,8 @@ async def optimize_resume(resume: UploadFile, jobDesc: str = Form(...)):
         }}
         """
 
-        
-        result = call_gemini(prompt)
+        # Run Gemini asynchronously
+        result = await run_gemini_async(prompt)
         return JSONResponse(result)
 
     except Exception as e:

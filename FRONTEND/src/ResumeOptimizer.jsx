@@ -8,6 +8,9 @@ export default function ResumeOptimizer() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingText, setLoadingText] = useState("Preparing analysis...");
+  const [showResults, setShowResults] = useState(false);
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
@@ -49,16 +52,56 @@ export default function ResumeOptimizer() {
 
     setLoading(true);
     setResult(null);
+    setShowResults(false);
+    setLoadingProgress(0);
+    setLoadingText("Preparing analysis...");
+
+    // Faster, more realistic progress simulation
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev >= 85) return prev;
+        return prev + Math.random() * 20 + 5; // Faster progress
+      });
+    }, 150); // Faster updates
+
+    const textInterval = setInterval(() => {
+      setLoadingText(prev => {
+        const texts = [
+          "Preparing analysis...",
+          "Reading resume...",
+          "Analyzing requirements...",
+          "Calculating ATS score...",
+          "Generating insights...",
+          "Finalizing results..."
+        ];
+        const currentIndex = texts.indexOf(prev);
+        return texts[(currentIndex + 1) % texts.length];
+      });
+    }, 800); // Faster text changes
 
     try {
       const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/optimize`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 45000, // 45 second timeout
       });
-      setResult(res.data);
+      
+      // Complete progress and show results faster
+      clearInterval(progressInterval);
+      clearInterval(textInterval);
+      setLoadingProgress(100);
+      setLoadingText("Analysis complete!");
+      
+      setTimeout(() => {
+        setResult(res.data);
+        setShowResults(true);
+        setLoading(false);
+      }, 300); // Faster transition
     } catch (err) {
       console.error(err);
+      clearInterval(progressInterval);
+      clearInterval(textInterval);
       setResult({ error: " Error analyzing resume. Please try again." });
-    } finally {
+      setShowResults(true);
       setLoading(false);
     }
   };
@@ -67,6 +110,9 @@ export default function ResumeOptimizer() {
     setResumeFile(null);
     setJobDesc("");
     setResult(null);
+    setShowResults(false);
+    setLoadingProgress(0);
+    setLoadingText("Preparing analysis...");
   };
 
   return (
@@ -173,46 +219,78 @@ export default function ResumeOptimizer() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading || !resumeFile || !jobDesc}
-                  className={`w-full text-white font-semibold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all duration-300 transform ${
-                    loading || !resumeFile || !jobDesc
-                      ? "bg-gray-400 cursor-not-allowed scale-100"
-                      : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:scale-105 hover:shadow-xl"
-                  }`}
-                >
+                <div className="relative">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading || !resumeFile || !jobDesc}
+                    className={`w-full text-white font-semibold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all duration-300 transform relative overflow-hidden ${
+                      loading || !resumeFile || !jobDesc
+                        ? "bg-gray-400 cursor-not-allowed scale-100"
+                        : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:scale-105 hover:shadow-xl"
+                    }`}
+                  >
+                    {/* Progress bar overlay */}
+                    {loading && (
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-30 transition-all duration-300"
+                        style={{ width: `${loadingProgress}%` }}
+                      ></div>
+                    )}
+                    
+                    <div className="relative z-10 flex items-center justify-center gap-3">
+                      {loading && (
+                        <div className="flex items-center gap-2">
+                          <svg
+                            className="animate-spin h-6 w-6 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8H4z"
+                            ></path>
+                          </svg>
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                      )}
+                      <span className="text-lg">
+                        {loading ? loadingText : "Optimize My Resume"}
+                      </span>
+                      {!loading && (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+                  
+                  {/* Progress percentage */}
                   {loading && (
-                    <svg
-                      className="animate-spin h-6 w-6 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      ></path>
-                    </svg>
+                    <div className="mt-2 text-center">
+                      <div className="text-sm text-gray-600 font-medium">
+                        {Math.round(loadingProgress)}% Complete
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                        <div 
+                          className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full transition-all duration-300 ease-out"
+                          style={{ width: `${loadingProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   )}
-                  <span className="text-lg">
-                    {loading ? "Analyzing Resume..." : "Optimize My Resume"}
-                  </span>
-                  {!loading && (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  )}
-                </button>
+                </div>
                 
                 {(resumeFile || jobDesc || result) && (
                   <button
@@ -228,10 +306,60 @@ export default function ResumeOptimizer() {
               </div>
             </div>
 
+            {/* Loading Overlay */}
+            {loading && (
+              <div className="w-full max-w-4xl animate-fadeIn">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-white/20 text-center">
+                  <div className="flex flex-col items-center space-y-6">
+                    {/* Animated loading icon */}
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center animate-pulse-slow">
+                        <svg className="w-10 h-10 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full animate-bounce"></div>
+                    </div>
+                    
+                    {/* Loading text with typing effect */}
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-bold text-gray-800 animate-typing">
+                        {loadingText}
+                      </h3>
+                      <p className="text-gray-600">
+                        Please wait while we analyze your resume...
+                      </p>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full max-w-md">
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Progress</span>
+                        <span>{Math.round(loadingProgress)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                          className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${loadingProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    {/* Animated dots */}
+                    <div className="flex space-x-2">
+                      <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce"></div>
+                      <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Results Section - Centered */}
-            {result && (
-              <div className="w-full max-w-4xl">
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 lg:p-6 shadow-xl border border-white/20 animate-fadeIn">
+            {result && showResults && (
+              <div className="w-full max-w-4xl animate-fadeIn">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 lg:p-6 shadow-xl border border-white/20 animate-scaleIn">
                   <div className="flex items-center mb-6">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +383,7 @@ export default function ResumeOptimizer() {
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* ATS Score */}
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 animate-stagger-1 hover:shadow-lg transition-all duration-300 hover:scale-105">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-semibold text-gray-800">ATS Compatibility Score</h3>
                           <div className="text-3xl font-bold text-blue-600">
@@ -264,14 +392,17 @@ export default function ResumeOptimizer() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                           <div
-                            className={`h-3 rounded-full transition-all duration-1000 ${
+                            className={`h-3 rounded-full transition-all duration-2000 ease-out ${
                               (result.ats_score || 0) >= 80
                                 ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                                 : (result.ats_score || 0) >= 60
                                 ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
                                 : 'bg-gradient-to-r from-red-500 to-pink-500'
                             }`}
-                            style={{ width: `${result.ats_score || 0}%` }}
+                            style={{ 
+                              width: `${result.ats_score || 0}%`,
+                              animation: 'progress 2s ease-out'
+                            }}
                           ></div>
                         </div>
                         <p className="text-sm text-gray-600">
@@ -285,7 +416,7 @@ export default function ResumeOptimizer() {
                       </div>
 
                       {/* Missing Skills */}
-                      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100">
+                      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100 animate-stagger-2 hover:shadow-lg transition-all duration-300 hover:scale-105">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <svg className="w-5 h-5 text-amber-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -314,7 +445,7 @@ export default function ResumeOptimizer() {
                       </div>
 
                       {/* Suggestions */}
-                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100 animate-stagger-3 hover:shadow-lg transition-all duration-300 hover:scale-105">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -340,7 +471,7 @@ export default function ResumeOptimizer() {
                       </div>
 
                       {/* Summary */}
-                      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-100">
+                      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-100 animate-stagger-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
