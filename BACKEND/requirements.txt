@@ -6,3 +6,4 @@ python-docx
 requests
 python-multipart
 google-generativeai
+packaging
