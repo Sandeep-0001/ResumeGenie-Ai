@@ -7,7 +7,7 @@ export default function ResumeOptimizer() {
   const [jobDesc, setJobDesc] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
+  // const [dragActive, setDragActive] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState("Preparing analysis...");
   const [showResults, setShowResults] = useState(false);
@@ -35,14 +35,14 @@ export default function ResumeOptimizer() {
     multiple: false
   });
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.size > 5 * 1024 * 1024) {
-      alert("\u26A0 File too large! Please upload files under 5MB.");
-      return;
-    }
-    setResumeFile(file);
-  };
+  // const handleFileChange = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file && file.size > 5 * 1024 * 1024) {
+  //     alert("\u26A0 File too large! Please upload files under 5MB.");
+  //     return;
+  //   }
+  //   setResumeFile(file);
+  // };
 
   const handleSubmit = async () => {
     if (!resumeFile || !jobDesc) {
