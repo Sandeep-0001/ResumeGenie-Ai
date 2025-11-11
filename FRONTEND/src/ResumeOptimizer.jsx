@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import { useDropzone } from "react-dropzone";
 
@@ -11,6 +11,10 @@ export default function ResumeOptimizer() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState("Preparing analysis...");
   const [showResults, setShowResults] = useState(false);
+  
+  useEffect(() => {
+    axios.get(`${process.env.REACT_APP_BACKEND_URL}/ping`).catch(() => {});
+  }, []);
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];

@@ -46,6 +46,11 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 def read_root():
     return {"status": "FastAPI + Gemini API is working!"}
 
+@app.get("/ping")
+def ping():
+    return {"status": "awake"}
+
+
 async def run_gemini_async(prompt: str):
     """
     Run the blocking Gemini API call in a thread executor to prevent blocking FastAPI.
